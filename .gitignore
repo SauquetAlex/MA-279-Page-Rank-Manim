@@ -1,0 +1,13 @@
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+
+# Manim output (rendered videos, images, cache)
+media/
+
+# macOS
+.DS_Store
+
+# Editor caches
+.ropeproject/
