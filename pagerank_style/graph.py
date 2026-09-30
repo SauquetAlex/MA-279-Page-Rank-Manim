@@ -3,7 +3,7 @@
     from pagerank_style.graph import *
 
     graph = PageGraph(transitions, positions)   # your own data, see below
-    self.play(Create(graph))
+    self.play(*[edge.draw() for edge in graph.edges.values()])
     graph.nodes["A"]                             # a PageNode
     graph.edges["A", "B"]                        # a LinkEdge (arrow + "50%")
     self.play(graph.bold_outgoing("A"))          # emphasize A's links
@@ -111,6 +111,17 @@ class LinkEdge(VGroup):
                 self.arrow.point_from_proportion(LABEL_ALONG), right, buff=0.1
             )
         return label
+
+    def draw(self, **kwargs):
+        """Animation: draw the arrow and write the label.
+
+        Use this instead of Create(edge): Create on Text fills half-traced
+        glyphs, so the letters look jagged while they appear. Write defaults
+        to linear timing, so it is eased like Create to finish in step.
+        """
+        return AnimationGroup(
+            Create(self.arrow), Write(self.label, rate_func=smooth), **kwargs
+        )
 
     def bold(self, color=TEXT_COLOR):
         """Animation: thicker, brighter arrow and bold label.

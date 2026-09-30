@@ -34,4 +34,9 @@ EDGE_BOLD_STROKE_WIDTH = 7
 EDGE_LABEL_FONT_SIZE = 24
 EDGE_LABEL_BOLD_STROKE_WIDTH = 1.2
 
+# Random surfer (used by pagerank_style.surfer)
+SURFER_COLOR = WHITE
+SURFER_RADIUS = 0.12
+SURFER_STEP_TIME = 1.2  # seconds per click
+
 config.background_color = BACKGROUND
