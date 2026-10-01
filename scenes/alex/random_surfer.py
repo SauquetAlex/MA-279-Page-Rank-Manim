@@ -19,6 +19,7 @@ from manim import (
 
 from pagerank_style import *
 from pagerank_style.graph import PageGraph
+from pagerank_style.plot import RankPlot
 from pagerank_style.surfer import Surfers
 
 # TRANSITIONS[u][v] = probability the surfer clicks from page u to page v.
@@ -36,7 +37,7 @@ POSITIONS = {
     "D": 2 * LEFT + 1.8 * DOWN,
 }
 
-NUM_SURFERS = 3
+NUM_SURFERS = 4
 
 
 class RandomSurfer(Scene):
@@ -69,11 +70,13 @@ class RandomSurfer(Scene):
         self.wait()
 
         # 3 surfers start on every page
+        self.play(graph.animate.shift(3 * LEFT))
         surfers = Surfers(
             graph, [page for page in POSITIONS for _ in range(NUM_SURFERS)], seed=1
         )
-        self.play(FadeIn(surfers, scale=0.5))
+        plot = RankPlot(graph, steps=20).to_edge(RIGHT, buff=0.3)
+        self.play(FadeIn(surfers, scale=0.5), FadeIn(plot))
         for _ in range(20):
-            self.play(surfers.step())
+            self.play(surfers.step(), plot.step())
         self.wait()
         self.play(FadeOut(surfers), letters.animate.set_opacity(1))
