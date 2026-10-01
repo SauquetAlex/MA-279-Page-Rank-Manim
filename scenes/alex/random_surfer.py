@@ -19,7 +19,7 @@ from manim import (
 
 from pagerank_style import *
 from pagerank_style.graph import PageGraph
-from pagerank_style.surfer import Surfer
+from pagerank_style.surfer import Surfers
 
 # TRANSITIONS[u][v] = probability the surfer clicks from page u to page v.
 TRANSITIONS = {
@@ -35,6 +35,8 @@ POSITIONS = {
     "C": 2 * RIGHT + 1.8 * DOWN,
     "D": 2 * LEFT + 1.8 * DOWN,
 }
+
+NUM_SURFERS = 3
 
 
 class RandomSurfer(Scene):
@@ -55,9 +57,23 @@ class RandomSurfer(Scene):
         self.wait(1)
 
         # "Animation with clicks following pages"
-        surfer = Surfer(graph, "A", seed=0)
-        self.play(FadeIn(surfer, scale=0.5))
+        letters = VGroup(*[node.letter for node in graph.nodes.values()])
+
+        # One surfer, starting on A
+        surfer = Surfers(graph, ["A"], seed=0)
+        self.play(FadeIn(surfer, scale=0.5), letters.animate.set_opacity(0.5))
         for _ in range(10):
             self.play(surfer.step())
         self.wait()
         self.play(FadeOut(surfer))
+        self.wait()
+
+        # 3 surfers start on every page
+        surfers = Surfers(
+            graph, [page for page in POSITIONS for _ in range(NUM_SURFERS)], seed=1
+        )
+        self.play(FadeIn(surfers, scale=0.5))
+        for _ in range(20):
+            self.play(surfers.step())
+        self.wait()
+        self.play(FadeOut(surfers), letters.animate.set_opacity(1))

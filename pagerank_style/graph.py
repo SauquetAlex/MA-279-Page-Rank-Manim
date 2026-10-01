@@ -31,6 +31,30 @@ PAIR_OFFSET = 0.15  # sideways shift so A->B and B->A don't overlap
 LABEL_ALONG = 0.35  # label position along the edge (off-center so crossing diagonals don't collide)
 
 
+def draw_arrow(arrow, **kwargs):
+    """Animation: draw an arrow (straight or curved) with its tip riding along.
+
+    Create(arrow) draws the shaft first and the tip after it, so the tip
+    pops in late at the very end of the animation.
+    """
+    shaft = arrow.copy()
+    tip = shaft.tip
+    shaft.remove(tip)  # not pop_tips(): that stretches the shaft over the tip
+
+    def update(mob, alpha):
+        mob.pointwise_become_partial(shaft, 0, alpha)
+        mob.tip.become(tip)
+        end, handle = mob.points[-1], mob.points[-2]
+        if alpha > 0 and not np.allclose(end, handle):
+            mob.tip.rotate(
+                angle_of_vector(end - handle) - tip.tip_angle, about_point=tip.base
+            )
+        mob.tip.shift(end - tip.base)
+        mob.tip.scale(min(1, 5 * alpha), about_point=end)  # grow in at the start
+
+    return UpdateFromAlphaFunc(arrow, update, rate_func=smooth, **kwargs)
+
+
 class PageNode(VGroup):
     """A page: colored circle with its name in the middle."""
 
@@ -120,7 +144,7 @@ class LinkEdge(VGroup):
         to linear timing, so it is eased like Create to finish in step.
         """
         return AnimationGroup(
-            Create(self.arrow), Write(self.label, rate_func=smooth), **kwargs
+            draw_arrow(self.arrow), Write(self.label, rate_func=smooth), **kwargs
         )
 
     def bold(self, color=TEXT_COLOR):
@@ -133,7 +157,9 @@ class LinkEdge(VGroup):
             self.arrow.animate.set_stroke(width=EDGE_BOLD_STROKE_WIDTH).set_color(
                 color
             ),
-            self.label.animate.set_stroke(TEXT_COLOR, width=EDGE_LABEL_BOLD_STROKE_WIDTH),
+            self.label.animate.set_stroke(
+                TEXT_COLOR, width=EDGE_LABEL_BOLD_STROKE_WIDTH
+            ),
         )
 
     def unbold(self):
@@ -170,7 +196,9 @@ class PageGraph(VGroup):
                     loop_direction=positions[u] - center,  # loops point outward
                 )
 
-        # edges first so nodes are drawn on top of them
+        # nodes on top of edges, even when the edges are animated in later
+        for node in self.nodes.values():
+            node.set_z_index(1)
         self.add(*self.edges.values(), *self.nodes.values())
 
     def outgoing(self, name):

@@ -1,11 +1,13 @@
-"""A random surfer: a dot that clicks links on a PageGraph.
+"""Random surfers: dots that click links on a PageGraph, all at the same time.
 
-    from pagerank_style.surfer import Surfer
+    from pagerank_style.surfer import Surfers
 
-    surfer = Surfer(graph, "A", seed=0)
-    self.play(FadeIn(surfer))
-    self.play(surfer.walk_to("B"))   # follow the A -> B link
-    self.play(surfer.step())         # pick a random link from the current page
+    surfers = Surfers(graph, ["A", "B", "C"], seed=0)   # one dot per start page
+    self.play(FadeIn(surfers))
+    self.play(surfers.step())   # every surfer clicks a random link
+
+Surfers on the same page sit inside its circle: 1 in the middle, 2 side by
+side, 3 in a triangle, and so on.
 """
 
 import random
@@ -16,42 +18,57 @@ from pagerank_style import BACKGROUND, SURFER_COLOR, SURFER_RADIUS, SURFER_STEP_
 
 
 class Surfer(Dot):
-    """Rests on the edge of its current page's circle, at `angle`."""
-
-    def __init__(self, graph, page, angle=PI / 4, seed=None, **kwargs):
+    def __init__(self, page, **kwargs):
         super().__init__(
             radius=SURFER_RADIUS,
             color=SURFER_COLOR,
-            stroke_color=BACKGROUND,  # thin dark ring so it stands out on arrows
+            stroke_color=BACKGROUND,  # thin dark ring so touching dots stay apart
             stroke_width=2,
             **kwargs,
         )
-        self.graph = graph
         self.page = page
-        self.angle = angle
+        self.set_z_index(2)  # above the nodes (z_index 1) it sits in
+
+
+class Surfers(VGroup):
+    def __init__(self, graph, pages, seed=None, **kwargs):
+        super().__init__(*[Surfer(page) for page in pages], **kwargs)
+        self.graph = graph
         self.rng = random.Random(seed)
-        self.move_to(self.rest_point(page))
+        for surfer, point in zip(self, self.spots(pages)):
+            surfer.move_to(point)
 
-    def rest_point(self, page):
-        node = self.graph.nodes[page]
-        return node.get_center() + node.radius * rotate_vector(RIGHT, self.angle)
+    def spots(self, pages):
+        """Where each surfer sits when the surfers are on `pages`."""
+        points = []
+        for i, page in enumerate(pages):
+            k = pages.count(page)  # surfers sharing this page
+            j = pages[:i].count(page)  # this surfer's place among them
+            ring = 0 if k == 1 else max(0.15, 0.045 * k)  # wide enough not to overlap
+            offset = rotate_vector(
+                UP, TAU * j / k
+            )  # first at the top: triangle points up
+            points.append(self.graph.nodes[page].get_center() + ring * offset)
+        return points
 
-    def choose_next(self):
-        """Pick the next page with the link probabilities of the current page."""
-        row = self.graph.transitions[self.page]
+    def choose_next(self, page):
+        """Pick the next page with the link probabilities of `page`."""
+        row = self.graph.transitions[page]
         return self.rng.choices(list(row), weights=list(row.values()))[0]
 
-    def walk_to(self, page, run_time=SURFER_STEP_TIME, **kwargs):
-        """Animation: follow the link from the current page to `page`."""
-        arrow = self.graph.edges[self.page, page].arrow
-        start, end = self.rest_point(self.page), self.rest_point(page)
-        path = VMobject()
-        path.set_points_as_corners([start, arrow.points[0]])
-        path.append_points(arrow.points)  # the arrow's curve, without its tip
-        path.append_points(Line(arrow.points[-1], end).points)
-        self.page = page
-        return MoveAlongPath(self, path, run_time=run_time, **kwargs)
+    def walk_to(self, pages, run_time=SURFER_STEP_TIME, **kwargs):
+        """Animation: surfer i follows the link to pages[i]."""
+        moves = []
+        for surfer, page, end in zip(self, pages, self.spots(pages)):
+            arrow = self.graph.edges[surfer.page, page].arrow
+            path = VMobject()
+            path.set_points_as_corners([surfer.get_center(), arrow.points[0]])
+            path.append_points(arrow.points)  # the arrow's curve, without its tip
+            path.append_points(Line(arrow.points[-1], end).points)
+            surfer.page = page
+            moves.append(MoveAlongPath(surfer, path))
+        return AnimationGroup(*moves, run_time=run_time, **kwargs)
 
     def step(self, **kwargs):
-        """Animation: click a random link from the current page."""
-        return self.walk_to(self.choose_next(), **kwargs)
+        """Animation: every surfer clicks a random link from its page."""
+        return self.walk_to([self.choose_next(s.page) for s in self], **kwargs)
