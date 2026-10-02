@@ -7,6 +7,8 @@ Render:  uv run manim -pql scenes/alex/conclusion.py Conclusion
 Needs two logos in assets/logos/ (PNG renders from Wikimedia Commons):
     google.png     <- Google_2015_logo.svg
     wikipedia.png  <- Wikipedia-logo-v2.svg
+and three icons in assets/icons/ (SVGs from thenounproject.com):
+    university.svg, government.svg, developer.svg
 """
 
 from manim import *
@@ -32,11 +34,11 @@ RESULTS = [
     ),
 ]
 
-# Sites that link to Wikipedia: (name, url, color)
+# Sites that link to Wikipedia: (name, url, color, icon in assets/icons/[, icon scale])
 LINKERS = [
-    ("University", "purdue.edu", BLUE),
-    ("Government", "nasa.gov", YELLOW),
-    ("Developer", "github.com", GREEN),
+    ("University", "purdue.edu", BLUE, "university.svg"),
+    ("Government", "nasa.gov", YELLOW, "government.svg", 0.9),  # wide icon: shrink
+    ("Developer", "github.com", GREEN, "developer.svg"),
 ]
 
 

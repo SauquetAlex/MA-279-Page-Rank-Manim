@@ -12,16 +12,18 @@
     self.play(page.show_results())   # results slide in one by one
     self.play(page.spotlight(0))     # dim every result except the first
 
-    cards = VGroup(LinkCard("University", "stanford.edu", BLUE), ...)
+    cards = VGroup(LinkCard("University", "purdue.edu", BLUE, icon="university.svg"), ...)
     arrows = link_arrows(cards, page.results[0].favicon)
 
-Logos (google.png, and any `logo=` you pass) live in assets/logos/.
+Logos (google.png, and any `logo=` you pass) live in assets/logos/,
+icons (`icon=`) in assets/icons/.
 """
 
 from manim import *
 
 from pagerank_style import (
     BACKGROUND,
+    ICONS,
     LINK_BLUE,
     LOGOS,
     SEARCH_BAR_FILL,
@@ -154,9 +156,14 @@ class SearchPage(Group):
 
 
 class LinkCard(VGroup):
-    """A site that links somewhere: colored letter icon, name and url on a dark card."""
+    """A site that links somewhere: colored round icon, name and url on a dark card.
 
-    def __init__(self, name, url, color, **kwargs):
+    `icon` is an SVG file in assets/icons/ (e.g. from the Noun Project), drawn
+    dark inside the colored disk. Without one, the disk shows the name's first letter.
+    `icon_scale` shrinks or grows one icon that looks too big or small next to others.
+    """
+
+    def __init__(self, name, url, color, icon=None, icon_scale=1, **kwargs):
         card = RoundedRectangle(
             corner_radius=0.15,
             width=CARD_WIDTH,
@@ -165,15 +172,21 @@ class LinkCard(VGroup):
             fill_color=SEARCH_BAR_FILL,
             fill_opacity=1,
         )
-        disk = Circle(radius=0.2, color=color, fill_opacity=1, stroke_width=0)
+        disk = Circle(radius=0.25, color=color, fill_opacity=1, stroke_width=0)
         disk.move_to(card).align_to(card, LEFT).shift(0.2 * RIGHT)
-        letter = search_text(name[0], 20, BACKGROUND).move_to(disk)
+        if icon is None:
+            symbol = search_text(name[0], 20, BACKGROUND)
+        else:
+            symbol = SVGMobject(ICONS / icon).set_fill(BACKGROUND, 1).set_stroke(width=0)
+            size = 1.5 * icon_scale * disk.radius
+            symbol.scale(size / max(symbol.width, symbol.height))
+        symbol.move_to(disk)
         # fixed baselines so every card lines up, whatever letters it has
         name_text = set_baseline(search_text(name, 20), 0.04)
         url_text = set_baseline(search_text(url, 15, URL_GRAY), -0.25)
         VGroup(name_text, url_text).next_to(disk, RIGHT, buff=0.2, coor_mask=RIGHT)
         url_text.align_to(name_text, LEFT)
-        super().__init__(card, disk, letter, name_text, url_text, **kwargs)
+        super().__init__(card, disk, symbol, name_text, url_text, **kwargs)
 
 
 def link_arrows(sources, target, spread=0.1):
