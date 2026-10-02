@@ -80,3 +80,5 @@ class RandomSurfer(Scene):
             self.play(surfers.step(), plot.step())
         self.wait()
         self.play(FadeOut(surfers), letters.animate.set_opacity(1))
+
+        self.play(FadeOut(plot), FadeOut(graph))

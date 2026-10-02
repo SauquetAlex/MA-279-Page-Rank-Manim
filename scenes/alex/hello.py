@@ -4,6 +4,7 @@ Render:  uv run manim -pql scenes/alex/hello.py Hello
 """
 
 from manim import *
+
 from pagerank_style import *
 
 
