@@ -38,7 +38,7 @@ RESULTS = [
 LINKERS = [
     ("University", "purdue.edu", BLUE, "university.svg"),
     ("Government", "nasa.gov", YELLOW, "government.svg", 0.9),  # wide icon: shrink
-    ("Developer", "github.com", GREEN, "developer.svg"),
+    ("Developer", "github.com", GREEN, "developer.svg", 0.9),
 ]
 
 
