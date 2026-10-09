@@ -2,7 +2,9 @@
 
 Plays right after RandomSurfer. Hold on screen during the closing voiceover.
 
-Render:  uv run manim -pql scenes/alex/conclusion.py Conclusion
+Low quality render:  uv run manim -pql scenes/alex/conclusion.py Conclusion
+High quality render: uv run manim -pqh scenes/alex/conclusion.py Conclusion
+
 
 Needs two logos in assets/logos/ (PNG renders from Wikimedia Commons):
     google.png     <- Google_2015_logo.svg
@@ -20,16 +22,22 @@ QUERY = "what is pagerank"
 
 RESULTS = [
     SearchResult(
-        "Wikipedia", "en.wikipedia.org › wiki › PageRank", "PageRank - Wikipedia",
+        "Wikipedia",
+        "en.wikipedia.org › wiki › PageRank",
+        "PageRank - Wikipedia",
         "PageRank is an algorithm used by Google Search to rank web pages...",
         logo="wikipedia.png",
     ),
     SearchResult(
-        "Some Blog", "someblog.com › seo › pagerank", "What Is PageRank? A Simple Guide",
+        "Some Blog",
+        "someblog.com › seo › pagerank",
+        "What Is PageRank? A Simple Guide",
         "Everything you need to know about how Google ranks pages...",
     ),
     SearchResult(
-        "Another Site", "another-site.net › articles", "PageRank Explained in 5 Minutes",
+        "Another Site",
+        "another-site.net › articles",
+        "PageRank Explained in 5 Minutes",
         "A quick look at the math behind the original Google algorithm...",
     ),
 ]
@@ -55,20 +63,24 @@ class Conclusion(Scene):
         self.wait()
 
         self.play(page.spotlight(0))
-        self.wait(2)
+        self.wait(1)
 
         # "...universities, governments, and millions of coders linked it"
         cards = VGroup(*[LinkCard(*linker) for linker in LINKERS])
         gap = 0.35  # between cards, and between the last card and the dots
         cards.arrange(DOWN, buff=gap)
         cards.move_to([page.left_margin_x(), wikipedia.favicon.get_y(), 0])
-        dots = MathTex(r"\vdots", color=URL_GRAY).scale(1.6).next_to(cards, DOWN, buff=gap)
+        dots = (
+            MathTex(r"\vdots", color=URL_GRAY).scale(1.6).next_to(cards, DOWN, buff=gap)
+        )
         arrows = link_arrows(cards, wikipedia.favicon)
 
-        self.play(LaggedStart(
-            *[FadeIn(m, shift=0.2 * RIGHT) for m in (*cards, dots)], lag_ratio=0.3
-        ))
+        self.play(
+            LaggedStart(
+                *[FadeIn(m, shift=0.2 * RIGHT) for m in (*cards, dots)], lag_ratio=0.3
+            )
+        )
         self.play(LaggedStart(*[GrowArrow(a) for a in arrows], lag_ratio=0.2))
-        self.wait(8)  # rest of the voiceover: adjust to match the recording
+        self.wait(25)  # rest of the voiceover: adjust to match the recording
 
         self.play(FadeOut(Group(page, cards, dots, arrows)))

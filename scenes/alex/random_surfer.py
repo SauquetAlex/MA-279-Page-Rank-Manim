@@ -1,6 +1,7 @@
 """Random surfer explanation of PageRank.
 
-Render:  uv run manim -pql scenes/alex/random_surfer.py RandomSurfer
+Render low quality:  uv run manim -pql scenes/alex/random_surfer.py RandomSurfer
+Render high quality: uv run manim -pqh scenes/alex/random_surfer.py RandomSurfer
 """
 
 from manim import *
@@ -53,7 +54,7 @@ class RandomSurfer(Scene):
         self.wait(3)
 
         self.play(graph.bold_outgoing("A"))
-        self.wait(4)
+        self.wait(8)
         self.play(graph.unbold_all())
         self.wait(1)
 
@@ -63,7 +64,7 @@ class RandomSurfer(Scene):
         # One surfer, starting on A
         surfer = Surfers(graph, ["A"], seed=0)
         self.play(FadeIn(surfer, scale=0.5), letters.animate.set_opacity(0.5))
-        for _ in range(10):
+        for _ in range(20):
             self.play(surfer.step())
         self.wait()
         self.play(FadeOut(surfer))
@@ -78,7 +79,7 @@ class RandomSurfer(Scene):
         self.play(FadeIn(surfers, scale=0.5), FadeIn(plot))
         for _ in range(20):
             self.play(surfers.step(), plot.step())
-        self.wait()
+        self.wait(10)
         self.play(FadeOut(surfers), letters.animate.set_opacity(1))
 
         self.play(FadeOut(plot), FadeOut(graph))
