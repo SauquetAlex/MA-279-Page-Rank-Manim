@@ -154,6 +154,34 @@ class SearchPage(Group):
         """x of the middle of the empty space left of the page."""
         return (self.bar.get_left()[0] - config.frame_width / 2) / 2
 
+    def align_to_page(self, other):
+        """Scale and move this page so its search bar sits exactly on other's bar."""
+        self.scale(other.bar.width / self.bar.width)
+        self.shift(other.bar.get_center() - self.bar.get_center())
+        return self
+
+    def roll_to(self, new, run_time=0.8, distance=0.2):
+        """Animation: results fade away, old query rolls up and out,
+        and new's query rolls up into the bar from below."""
+        return AnimationGroup(
+            FadeOut(self.results, shift=0.2 * DOWN),
+            FadeOut(self.query, shift=distance * UP),
+            FadeIn(new.query, shift=distance * UP),
+            run_time=run_time,
+        )
+
+    def top_arrow(self, length=1.0, color=YELLOW):
+        """Arrow in the left margin pointing at the first result."""
+        end = self.results[0].favicon.get_left() + 0.15 * LEFT
+        return Arrow(
+            end + length * LEFT, end,
+            buff=0,
+            color=URL_GRAY,
+            stroke_width=4,
+            tip_length=0.18,
+            max_tip_length_to_length_ratio=1
+        )
+
 
 class LinkCard(VGroup):
     """A site that links somewhere: colored round icon, name and url on a dark card.
